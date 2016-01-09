@@ -7,7 +7,7 @@ import subprocess
 import os
 import shutil
 
-tmp_dir = '.tmp/'
+tmp_dir = 'var/tmp/'
 if not os.path.exists(tmp_dir):
     os.makedirs(tmp_dir)
 
