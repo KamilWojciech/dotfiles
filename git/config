@@ -1,0 +1,13 @@
+[dist:user]
+    name =
+    email =
+[user]
+[color]
+    ui = true
+[push]
+    default = simple
+[filter "media"]
+    smudge = git-media-smudge %f
+    clean = git-media-clean %f
+[init]
+    templatedir = ~/.git-templates
