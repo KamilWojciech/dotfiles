@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
+from sys import platform as _platform
+import subprocess
+import os
 
 
 class GitConfigParser:
@@ -133,7 +136,8 @@ class Output:
     BLUE = '\033[94m'
     GREEN = '\033[0;32m'
     LIGHT_GREEN = '\033[92m'
-    YELLOW = '\033[93m'
+    YELLOW = '\033[0;33m'
+    LIGHT_YELLOW = '\033[93m'
     RED = '\033[0;31m'
     LIGHT_RED = '\033[91m'
     CYAN = '\033[36m'
@@ -181,7 +185,8 @@ class Output:
 
     @staticmethod
     def warning(message):
-        Output.write(message, Output.YELLOW)
+        message = Output.YELLOW + '⚠ ' + Output.LIGHT_YELLOW + message
+        Output.write(message)
 
 
 def setup():
@@ -210,6 +215,47 @@ def git_config():
     config.save('git/.config')
     Output.success('Git configuration succeed!')
 
+def is_installed(name):
+
+    installed = True
+    try:
+        devnull = open(os.devnull)
+        subprocess.Popen([name], stdout=devnull, stderr=devnull)
+    except OSError as e:
+        if e.errno == os.errno.ENOENT:
+            installed = False
+
+    return installed
+
+def install_brew():
+    if not is_installed('ruby'):
+        Output.warning('It is recommended to install Ruby!')
+        return
+
+    if is_installed('breww'):
+        return
+
+    Output.header('Brew installation')
+    value = raw_input('  Do you want to install brew? [Y/n]: ')
+    if value.lower() == 'n':
+        return
+
+    if _platform == 'darwin':
+        script = ['curl', '-fsSL', 'https://raw.githubusercontent.com/Homebrew/install/master/install']
+    else:
+        script = ['curl', '-fsSL', 'https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install']
+
+    directory = '.tmp'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    install_file = open(directory + '/brew_install', 'w+')
+
+    subprocess.Popen(script, stdout=install_file, stderr=subprocess.STDOUT, stdin=subprocess.PIPE).wait()
+
+    proc = subprocess.Popen(['ruby', directory + '/brew_install'])
+    proc.communicate()
+
 
 setup()
+install_brew()
 git_config()
