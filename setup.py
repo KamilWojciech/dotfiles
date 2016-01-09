@@ -5,6 +5,11 @@ import re
 from sys import platform as _platform
 import subprocess
 import os
+import shutil
+
+tmp_dir = '.tmp/'
+if not os.path.exists(tmp_dir):
+    os.makedirs(tmp_dir)
 
 
 class GitConfigParser:
@@ -170,7 +175,7 @@ class Output:
 
     @staticmethod
     def header(message):
-        message = ' ' + message + ' '
+        message = '\n ' + message + ' '
         Output.bg(message, Output.BG_BLUE, Output.WHITE)
 
     @staticmethod
@@ -191,7 +196,22 @@ class Output:
 
 def setup():
     print "Setup dotfiles"
-    print "It is not implemented yet!\n"
+    print "It is not implemented yet!"
+
+
+def is_installed(name):
+
+    installed = True
+    try:
+        devnull = open(os.devnull)
+        process = subprocess.Popen([name], stdout=devnull, stderr=devnull)
+    except OSError as e:
+        if e.errno == os.errno.ENOENT:
+            installed = False
+
+    if installed:
+        process.terminate()
+    return installed
 
 
 def git_config():
@@ -212,27 +232,16 @@ def git_config():
 
         config.remove_section(dist)
 
-    config.save('git/.config')
+    config.save(tmp_dir + 'gitconfig')
     Output.success('Git configuration succeed!')
 
-def is_installed(name):
-
-    installed = True
-    try:
-        devnull = open(os.devnull)
-        subprocess.Popen([name], stdout=devnull, stderr=devnull)
-    except OSError as e:
-        if e.errno == os.errno.ENOENT:
-            installed = False
-
-    return installed
 
 def install_brew():
     if not is_installed('ruby'):
         Output.warning('It is recommended to install Ruby!')
         return
 
-    if is_installed('breww'):
+    if is_installed('brew'):
         return
 
     Output.header('Brew installation')
@@ -245,17 +254,19 @@ def install_brew():
     else:
         script = ['curl', '-fsSL', 'https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install']
 
-    directory = '.tmp'
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    install_file = open(directory + '/brew_install', 'w+')
+    install_file = open(tmp_dir + 'brew_install', 'w+')
 
     subprocess.Popen(script, stdout=install_file, stderr=subprocess.STDOUT, stdin=subprocess.PIPE).wait()
 
-    proc = subprocess.Popen(['ruby', directory + '/brew_install'])
+    proc = subprocess.Popen(['ruby', tmp_dir + 'brew_install'])
     proc.communicate()
+
+
+def clean():
+    shutil.rmtree(tmp_dir)
 
 
 setup()
 install_brew()
 git_config()
+clean()
