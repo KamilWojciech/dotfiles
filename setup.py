@@ -154,7 +154,7 @@ class Output:
     BG_GREEN = '\033[42m'
     BG_YELLOW = '\033[43m'
     BG_BLUE = '\033[44m'
-    BG_PURPLE = '\033[45m'
+    BG_PURPLE = '\033[45m '
     BG_CYAN = '\033[46m'
     BG_WHITE = '\033[47m'
 
@@ -220,7 +220,7 @@ def git_config():
     try:
         config = GitConfigParser(config_file)
     except IOError:
-        Output.error('File ' + config_file + 'does not exist! Skipped!')
+        Output.error('File ' + config_file + ' does not exist! Skipped!')
         return
     dist_sections = config.dist_sections()
     for dist in dist_sections:
@@ -250,8 +250,10 @@ def install_brew():
         return
 
     if _platform == 'darwin':
+        bin_dir = '/usr/local/bin'
         script = ['curl', '-fsSL', 'https://raw.githubusercontent.com/Homebrew/install/master/install']
     else:
+        bin_dir = os.environ['HOME'] + '/.linuxbrew/bin'
         script = ['curl', '-fsSL', 'https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install']
 
     install_file = open(tmp_dir + 'brew_install', 'w+')
@@ -260,6 +262,9 @@ def install_brew():
 
     proc = subprocess.Popen(['ruby', tmp_dir + 'brew_install'])
     proc.communicate()
+
+    # if bin_dir not in os.environ['PATH'].split(':'):
+#         @TODO: add to path
 
 
 def clean():
